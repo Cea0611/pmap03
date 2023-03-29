@@ -1,12 +1,22 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+var fs = require('fs');
+var https = require('https');
 const got = require('got');
 
-const API_PATH = 'http://172.18.69.8:4000/api/users/';
+const API_PATH = 'http://172.18.70.167:4000/api/users/';
 const API_RESOURCE_BYUSERNAME = 'byusername/';
 
 var app = express();
+
+var privateKey  = fs.readFileSync('./sslcerts/selfsigned.key', 'utf8');
+var certificate = fs.readFileSync('./sslcerts/selfsigned.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
+
+// your express configuration here
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(3001);
 
 app.use(session({
     secret: 'secret',
@@ -61,6 +71,10 @@ app.get('/home', function(request, response) {
     }
     response.end();
 });
+
+app.get('/userlocation',function(req,res){
+    res.sendFile(path.join(__dirname + '/views/userlocation.html'));
+  });
 
 async function getUserSignedIn(username,password) {
     console.log(API_PATH+API_RESOURCE_BYUSERNAME+username);
